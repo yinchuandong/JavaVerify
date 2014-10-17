@@ -1,4 +1,4 @@
-package test;
+package test2;
 
 import java.awt.Color;
 import java.awt.Label;
@@ -49,6 +49,16 @@ public class ImageUtil {
 	 */
 	private BufferedImage removeBackground(String imgPath) throws IOException{
 		BufferedImage image = ImageIO.read(new File(imgPath));
+		return this.removeBackground(image);
+		
+	}
+	
+	/**
+	 * remove background color, only white or black
+	 * @param image
+	 * @return
+	 */
+	private BufferedImage removeBackground(BufferedImage image){
 		int width = image.getWidth();
 		int height = image.getHeight();
 		
@@ -143,7 +153,30 @@ public class ImageUtil {
 	
 	public static void saveImage(BufferedImage image, String filePath){
 		try {
-			ImageIO.write(image, "JPG", new File(filePath));
+			File dest = new File(filePath);
+			if (!dest.getParentFile().exists()) {
+				dest.getParentFile().mkdir();
+			}
+			ImageIO.write(image, "JPG", dest);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void test(){
+		try {
+			BufferedImage originImg = ImageIO.read(new File("img2/1.jpeg"));
+			BufferedImage destImg = new BufferedImage(originImg.getWidth(), originImg.getHeight(), originImg.getType());
+			int width = originImg.getWidth();
+			int height = originImg.getHeight();
+			for (int i = 0; i < width; i++) {
+				for (int j = 0; j < height; j++) {
+					destImg.setRGB(i, j, originImg.getRGB(i, j));
+				}
+			}
+			removeBackground(destImg);
+			saveImage(destImg, "out2/1.jpeg");
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -153,13 +186,14 @@ public class ImageUtil {
 	public static void main(String[] args){
 		try {
 			ImageUtil model = new ImageUtil();
-			File dir = new File("img");
-			File[] files = dir.listFiles();
-			for (File file : files) {
-				String number = model.identify(file.getPath());
-				
-				System.out.println(file.getName() + " --- " + number);
-			}
+			model.test();
+//			File dir = new File("img2");
+//			File[] files = dir.listFiles();
+//			for (File file : files) {
+//				String number = model.identify(file.getPath());
+//				
+//				System.out.println(file.getName() + " --- " + number);
+//			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

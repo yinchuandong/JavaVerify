@@ -1,4 +1,4 @@
-package test;
+package test2;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -62,7 +62,7 @@ public class IndexFrame extends JFrame {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser("img");
+				JFileChooser fileChooser = new JFileChooser("img1");
 				fileChooser.setMultiSelectionEnabled(false);
 				fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				int result = fileChooser.showOpenDialog(null);
