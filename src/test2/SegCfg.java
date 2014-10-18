@@ -21,7 +21,7 @@ public class SegCfg {
 		this.init();
 		
 		try {
-			BufferedImage sourceImage = ImageIO.read(new File("img2/1_1.jpg"));
+			BufferedImage sourceImage = ImageIO.read(new File("img2/1_13.jpg"));
 			cfs(sourceImage);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -75,6 +75,7 @@ public class SegCfg {
 //							}
 							
 							key = tx + "-" + ty;
+							System.out.println(key);
 							if (isBlack(sourceImage.getRGB(tx, ty)) && !trackMap.containsKey(key)) {
 								queue.offer(new Point(tx, ty, true));
 								trackMap.put(key, true);
@@ -119,7 +120,7 @@ public class SegCfg {
 			//将切割的中间图片加入到cfgList中
 			this.cfgList.add(image);
 			try {
-				ImageIO.write(image, "JPG", new File("img2/2_"+i+".jpg"));
+				ImageIO.write(image, "JPG", new File("img2/13_"+i+".jpg"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

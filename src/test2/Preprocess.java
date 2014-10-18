@@ -15,7 +15,7 @@ public class Preprocess {
 	
 	private void init(){
 		try {
-			BufferedImage img = ImageIO.read(new File("img2/1.jpeg"));
+			BufferedImage img = ImageIO.read(new File("img2/13.jpg"));
 			getGrayImage(img);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -62,7 +62,7 @@ public class Preprocess {
 		}
 		
 		try {
-			ImageIO.write(binaryBufferedImage, "JPG", new File("img2/1_1.jpg"));
+			ImageIO.write(binaryBufferedImage, "JPG", new File("img2/1_13.jpg"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

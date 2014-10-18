@@ -10,7 +10,7 @@ import javax.imageio.ImageIO;
 
 public class SegWaterDrop {
 	
-	private int minD = 8;//最小字符宽度
+	private int minD = 10;//最小字符宽度
 	private int maxD = 16;
 	private int meanD = 11;//平均字符宽度
 	
@@ -19,7 +19,7 @@ public class SegWaterDrop {
 	public SegWaterDrop() {
 		
 		try {
-			sourceImage = ImageIO.read(new File("img2/2_1.jpg"));
+			sourceImage = ImageIO.read(new File("img2/12_1.jpg"));
 			drop(sourceImage);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -62,18 +62,19 @@ public class SegWaterDrop {
 			//判断两个分割点之间的距离是否合法
 			int curP = extrems.get(i);
 			int dBetween = curP - lastP + 1;
-			if (dBetween - lastP < minD || dBetween > maxD) {
+			if (dBetween < minD || dBetween > maxD) {
 				continue;
 			}
 			
-			//判断当前分割点与末尾结束点的位置是否合法
-			int dAll = width - curP + 1;
-			if (dAll < minD*(num - curSplit) || dAll > maxD*(num - curSplit)) {
-				continue;
-			}
+//			//判断当前分割点与末尾结束点的位置是否合法
+//			int dAll = width - curP + 1;
+//			if (dAll < minD*(num - curSplit) || dAll > maxD*(num - curSplit)) {
+//				continue;
+//			}
 			endRoute = getEndRoute(new Point(curP, 0), height);
-			doSplit(startRoute, endRoute, "4_"+curSplit+".jpg");
+			doSplit(startRoute, endRoute, "3_"+curSplit+".jpg");
 			startRoute = endRoute;
+			lastP = curP;
 			curSplit ++;
 		}
 		
@@ -81,12 +82,18 @@ public class SegWaterDrop {
 		for(int y=0; y < height; y++){
 			endRoute[y] = new Point(width - 1, y);
 		}
-		doSplit(startRoute, endRoute, "4_"+curSplit+".jpg");
+		doSplit(startRoute, endRoute, "3_"+curSplit+".jpg");
 		
 		System.out.println("=================");
 		System.out.println(width+","+height);
 	}
 	
+	/**
+	 * 获得滴水的路径
+	 * @param startP
+	 * @param height
+	 * @return
+	 */
 	private Point[] getEndRoute(Point startP, int height){
 		
 		//获得分割的路径
@@ -101,7 +108,7 @@ public class SegWaterDrop {
 			int nextY = curP.y;
 			
 			int[][] orderArr = {	{5, 0, 4},
-									{1, 2, 3}};
+									{3, 2, 1}};
 			for(int y = curP.y, i = 0; y <= curP.y + 1 && i < 2; y++, i++){
 				for(int x = curP.x - 1, j = 0; x <= curP.x + 1 && j < 3; x++, j++){
 					if (orderArr[i][j] == 0) {
@@ -118,20 +125,46 @@ public class SegWaterDrop {
 			}
 
 			if (lastP.x == nextX && lastP.y == nextY) {//如果出现重复运动
-				lastP = curP;
 				if (nextX < curP.x) {//向左重复
-					curP = new Point(curP.x - 1, curP.y + 1);
+					maxW = 5;
+					nextX = curP.x - 1;
+					nextY = curP.y + 1;
 				}else{//向右重复
-					curP = new Point(curP.x, curP.y + 1);
+					maxW = 3;
+					nextX = curP.x + 1;
+					nextY = curP.y + 1;
 				}
 			}else{
-				lastP = curP;
-				if (sum == 0 || sum == 15) {
-					curP = new Point(curP.x, curP.y + 1);
-				}else{
-					curP = new Point(nextX, nextY);
+				if (sum == 0 ) {
+					maxW = 4;
+				}
+				//如果周围全白，则默认垂直下落
+				if (sum == 15) {
+					maxW = 6;
+					nextX = curP.x;
+					nextY = curP.y + 1;
 				}
 			}
+			
+			switch (maxW) {
+			case 4:
+				if (nextX > curP.x) {//具有向右的惯性
+					nextX = curP.x + 1;
+					nextY = curP.x + 1;
+				}
+				
+				if (nextX < curP.x || sum == 0) {//向左的惯性或者sum = 0
+					nextX = curP.x;
+					nextY = curP.y + 1;
+				}
+				break;
+
+			default:
+				
+				break;
+			}
+			lastP = curP;
+			curP = new Point(nextX, nextY);
 			
 			endRoute[curP.y] = curP;
 		}
