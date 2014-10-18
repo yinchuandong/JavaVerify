@@ -13,49 +13,6 @@ import javax.imageio.ImageIO;
 public class SegCfg {
 	
 	/**
-	 * 像素点
-	 * @author wangjiewen
-	 *
-	 */
-	private class Point{
-		int x;
-		int y;
-		boolean isBlack;
-		
-		public Point(int x, int y, boolean isBlack) {
-			this.x = x;
-			this.y = y;
-			this.isBlack = isBlack;
-		}
-	}
-	
-	/**
-	 * 字符块图片
-	 * @author wangjiewen
-	 *
-	 */
-	public class SubImage{
-		ArrayList<Point> pixelList;
-		int left;
-		int top;
-		int right;
-		int bottom;
-		int width;
-		int height;
-		
-		public SubImage() {
-			this.pixelList = new ArrayList<Point>();
-			this.left = 0;
-			this.top = 0;
-			this.right = 0;
-			this.bottom = 0;
-			this.width = 0;
-			this.height = 0;
-		}
-	}
-
-	
-	/**
 	 * cfg 分割出来的结果
 	 */
 	private ArrayList<BufferedImage> cfgList;

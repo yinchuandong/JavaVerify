@@ -9,7 +9,7 @@ public class Extremum {
 		int min = data[0];
 		ArrayList<Integer> list = new ArrayList<Integer>();
 		
-		int miniSpan = 2; //规定最小跨度
+		int miniSpan = 5; //规定最小跨度
 		int lastEqIndex = 0;
 		
 		for(int i=1; i<data.length - 1; i++){
