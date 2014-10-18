@@ -3,6 +3,7 @@ package test2;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
@@ -10,23 +11,46 @@ import javax.imageio.ImageIO;
 public class Preprocess {
 	
 	public Preprocess(){
-		init();
+		
 	}
 	
-	private void init(){
-		try {
-			BufferedImage img = ImageIO.read(new File("img2/13.jpg"));
-			getGrayImage(img);
-		} catch (IOException e) {
-			e.printStackTrace();
+	public void run(){
+		File dir = new File("download");
+		//只列出jpg
+		File[] files = dir.listFiles(new FilenameFilter() {
+			
+			public boolean isJpg(String file){   
+			    if (file.toLowerCase().endsWith(".jpg")){   
+			      return true;   
+			    }else{   
+			      return false;   
+			    }   
+			}
+			
+			@Override
+			public boolean accept(File dir, String name) {
+				// TODO Auto-generated method stub
+				return isJpg(name);
+			}
+		});
+		
+		for (File file : files) {
+			try {
+				BufferedImage img = ImageIO.read(file);
+				BufferedImage binaryImg = getBinaryImage(img);
+				ImageIO.write(binaryImg, "JPG", new File("1_gray/" + file.getName()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
 	/**
-	 * 灰度化
+	 * 二值化
 	 * @param sourceImage
+	 * @return 二值化之后的图像
 	 */
-	public void getGrayImage(BufferedImage sourceImage){
+	public BufferedImage getBinaryImage(BufferedImage sourceImage){
 		double Wr = 0.299;
 		double Wg = 0.587;
 		double Wb = 0.114;
@@ -61,15 +85,7 @@ public class Preprocess {
 			}
 		}
 		
-		try {
-			ImageIO.write(binaryBufferedImage, "JPG", new File("img2/1_13.jpg"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void getBinaryImage(){
-		
+		return binaryBufferedImage;
 	}
 	
 	/**
@@ -130,7 +146,13 @@ public class Preprocess {
 	
 	public static void main(String[] args){
 		System.out.println("---begin---");
+		
+		long start = System.currentTimeMillis();
 		Preprocess model = new Preprocess();
+		model.run();
+		long end = System.currentTimeMillis();
+		
+		System.out.println("耗时：" + (end - start));
 		System.out.println("---end----");
 	}
 	

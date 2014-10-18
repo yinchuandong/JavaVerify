@@ -3,7 +3,9 @@ package test2;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -20,12 +22,58 @@ public class SegCfg {
 	public SegCfg(){
 		this.init();
 		
+	}
+	
+	public void test(){
 		try {
-			BufferedImage sourceImage = ImageIO.read(new File("img2/1_13.jpg"));
-			cfs(sourceImage);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			File file = new File("1_gray/10.jpg");
+			BufferedImage img = ImageIO.read(file);
+			ArrayList<BufferedImage> list = cfs(img);
+			for(int j=0; j<list.size(); j++){
+				BufferedImage subImg = list.get(j);
+				String prex = file.getName().split("\\.")[0];
+				String filename = "2_cfs/" + prex + "-" + j + ".jpg";
+				ImageIO.write(subImg, "JPG", new File(filename));
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public void run(){
+		File dir = new File("1_gray/");
+		//只列出jpg
+		File[] files = dir.listFiles(new FilenameFilter() {
+			
+			public boolean isJpg(String file){   
+			    if (file.toLowerCase().endsWith(".jpg")){   
+			      return true;   
+			    }else{   
+			      return false;   
+			    }   
+			}
+			
+			@Override
+			public boolean accept(File dir, String name) {
+				// TODO Auto-generated method stub
+				return isJpg(name);
+			}
+		});
+		
+		for (int i=0; i<10; i++) {
+			try {
+				File file = files[i];
+				BufferedImage img = ImageIO.read(file);
+				ArrayList<BufferedImage> list = cfs(img);
+				for(int j=0; j<list.size(); j++){
+					BufferedImage subImg = list.get(j);
+					String prex = file.getName().split("\\.")[0];
+					String filename = "2_cfs/" + prex + "-" + j + ".jpg";
+					ImageIO.write(subImg, "JPG", new File(filename));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -33,7 +81,13 @@ public class SegCfg {
 		cfgList = new ArrayList<BufferedImage>();
 	}
 	
-	public void cfs(BufferedImage sourceImage){
+	/**
+	 * cfs进行分割,返回分割后的数组
+	 * @param sourceImage
+	 * @return
+	 */
+	public ArrayList<BufferedImage> cfs(BufferedImage sourceImage){
+		this.cfgList.clear();
 		int width = sourceImage.getWidth();
 		int height = sourceImage.getHeight();
 		
@@ -65,17 +119,25 @@ public class SegCfg {
 					//搜寻目标的八个方向
 					int startX = (tmp.x - 1 < 0) ? 0 : tmp.x-1;
 					int startY = (tmp.y - 1 < 0) ? 0 : tmp.y-1;
-					int endX = (tmp.x + 1 > width) ? width : tmp.x+1;
-					int endY = (tmp.y + 1 > height) ? height : tmp.y+1;
+					int endX = (tmp.x + 1 > width - 1) ? width - 1 : tmp.x + 1;
+					int endY = (tmp.y + 1 > height - 1) ? height - 1 : tmp.y + 1;
 					
 					for (int tx = startX; tx <= endX; tx++) {
 						for (int ty = startY; ty <= endY; ty++) {
-//							if (tx == tmp.x && ty == tmp.y) {
-//								continue;
-//							}
+							if (tx == tmp.x && ty == tmp.y) {
+								continue;
+							}
 							
 							key = tx + "-" + ty;
 							System.out.println(key);
+							try {
+								boolean isblack = isBlack(sourceImage.getRGB(tx, ty));
+								boolean isContained = trackMap.containsKey(key);
+							} catch (Exception e) {
+								System.out.println("=========");
+								System.out.println(key);
+								e.printStackTrace();
+							}
 							if (isBlack(sourceImage.getRGB(tx, ty)) && !trackMap.containsKey(key)) {
 								queue.offer(new Point(tx, ty, true));
 								trackMap.put(key, true);
@@ -99,6 +161,7 @@ public class SegCfg {
 		
 		System.out.println();
 		cfsToImage(subImgList);
+		return this.cfgList;
 	}
 	
 	
@@ -119,11 +182,6 @@ public class SegCfg {
 			
 			//将切割的中间图片加入到cfgList中
 			this.cfgList.add(image);
-			try {
-				ImageIO.write(image, "JPG", new File("img2/13_"+i+".jpg"));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
 		}
 	}
 	
@@ -139,6 +197,8 @@ public class SegCfg {
 	
 	public static void main(String[] args){
 		SegCfg model = new SegCfg();
+		model.run();
+//		model.test();
 	}
 	
 	
