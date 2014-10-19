@@ -51,5 +51,19 @@ public class ImageUtil {
 		BufferedImage imgdest = new BufferedImage(width, height, img.getType());
 		return sf.filter(img, imgdest);
 	}
+	
+	
+	/**
+	 * 获得训练集图片的分类，如a-12.jpg，返回a
+	 * @param filename
+	 * @return
+	 */
+	public static String getImgClass(String filename){
+		String[] arr = filename.split("-");
+		return arr[0];
+	}
+	
+	
+	
 
 }
