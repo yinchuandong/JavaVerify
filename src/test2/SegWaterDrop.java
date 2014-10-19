@@ -14,7 +14,10 @@ public class SegWaterDrop {
 	private int maxD = 15;
 	private int meanD = 12;//平均字符宽度
 	
+	private int b = 1;//大水滴的宽度 2*B+1,取0或者1效果最好
+	
 	private ArrayList<BufferedImage> imageList;
+	private BufferedImage sourceImage;
 	
 	
 	public SegWaterDrop() {
@@ -23,11 +26,12 @@ public class SegWaterDrop {
 	}
 	
 	
-	public void run(){
+	public static void run(){
 		try {
+			SegWaterDrop model = new SegWaterDrop();
 			File file = new File("2_cfs/97-0.jpg");
 			BufferedImage sourceImage = ImageIO.read(file);
-			ArrayList<BufferedImage> list = drop(sourceImage);
+			ArrayList<BufferedImage> list = model.drop(sourceImage);
 			for(int j=0; j<list.size(); j++){
 				BufferedImage subImg = list.get(j);
 				String prex = file.getName().split("\\.")[0];
@@ -47,7 +51,9 @@ public class SegWaterDrop {
 	 * @return 切割完图片的数组
 	 */
 	public ArrayList<BufferedImage> drop(BufferedImage sourceImage){
-		imageList.clear();
+		this.imageList.clear();
+		this.sourceImage = sourceImage;
+		
 		int width = sourceImage.getWidth();
 		int height = sourceImage.getHeight();
 		
@@ -90,18 +96,19 @@ public class SegWaterDrop {
 //			if (dAll < minD*(num - curSplit) || dAll > maxD*(num - curSplit)) {
 //				continue;
 //			}
-			endRoute = getEndRoute(sourceImage, new Point(curP, 0), height);
-			doSplit(sourceImage, startRoute, endRoute);
+			endRoute = getEndRoute(new Point(curP, 0), height, curSplit);
+			doSplit(startRoute, endRoute);
 			startRoute = endRoute;
 			lastP = curP;
 			curSplit ++;
+			System.out.println(curP);
 		}
 		
 		endRoute = new Point[height];
 		for(int y=0; y < height; y++){
 			endRoute[y] = new Point(width - 1, y);
 		}
-		doSplit(sourceImage, startRoute, endRoute);
+		doSplit(startRoute, endRoute);
 		
 		System.out.println("=================");
 		System.out.println(width+","+height);
@@ -115,7 +122,7 @@ public class SegWaterDrop {
 	 * @param height
 	 * @return
 	 */
-	private Point[] getEndRoute(BufferedImage sourceImage, Point startP, int height){
+	private Point[] getEndRoute(Point startP, int height, int curSplit){
 		
 		//获得分割的路径
 		Point[] endRoute = new Point[height];
@@ -128,46 +135,49 @@ public class SegWaterDrop {
 			int nextX = curP.x;
 			int nextY = curP.y;
 			
-			int[][] orderArr = {	{5, 0, 4},
-									{1, 2, 3}};
-			for(int y = curP.y, i = 0; y <= curP.y + 1 && i < 2; y++, i++){
-				for(int x = curP.x - 1, j = 0; x <= curP.x + 1 && j < 3; x++, j++){
-					if (orderArr[i][j] == 0) {
-						continue;
-					}
-					int curW = getPixelValue(sourceImage.getRGB(x, y)) * (6 - orderArr[i][j]);
+			for (int j = 1; j <= 5; j++) {
+				try {
+					int curW = getPixelValue(curP.x, curP.y, j) * (6 - j);
 					sum += curW;
 					if (curW > maxW) {
 						maxW = curW;
-						nextX = x;
-						nextY = y;
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.exit(0);
 				}
 			}
 
-			if (lastP.x == nextX && lastP.y == nextY) {//如果出现重复运动
-				if (nextX < curP.x) {//向左重复
-					maxW = 5;
-					nextX = curP.x - 1;
-					nextY = curP.y + 1;
-				}else{//向右重复
-					maxW = 3;
-					nextX = curP.x + 1;
-					nextY = curP.y + 1;
-				}
-			}else{
-				if (sum == 0 ) {
-					maxW = 4;
-				}
-				//如果周围全白，则默认垂直下落
-				if (sum == 15) {
-					maxW = 6;
-					nextX = curP.x;
-					nextY = curP.y + 1;
-				}
+			//如果全黑，需要看惯性
+			if (sum == 0 ) {
+				maxW = 4;
+			}
+			//如果周围全白，则默认垂直下落
+			if (sum == 15) {
+				maxW = 6;
 			}
 			
 			switch (maxW) {
+			case 1: 
+				nextX = curP.x - 1;
+				nextY = curP.y;
+				break;
+			case 2:
+				nextX = curP.x + 1;
+				nextY = curP.y;
+				break;
+			case 3:
+				nextX = curP.x + 1;
+				nextY = curP.y + 1;
+				break;
+			case 5:
+				nextX = curP.x - 1;
+				nextY = curP.y + 1;
+				break;
+			case 6:
+				nextX = curP.x;
+				nextY = curP.y + 1;
+				break;
 			case 4:
 				if (nextX > curP.x) {//具有向右的惯性
 					nextX = curP.x + 1;
@@ -189,7 +199,32 @@ public class SegWaterDrop {
 				
 				break;
 			}
+			
+			//如果出现重复运动
+			if (lastP.x == nextX && lastP.y == nextY) {
+				if (nextX < curP.x) {//向左重复
+					maxW = 5;
+					nextX = curP.x + 1;
+					nextY = curP.y + 1;
+				}else{//向右重复
+					maxW = 3;
+					nextX = curP.x - 1;
+					nextY = curP.y + 1;
+				}
+			}
+			
 			lastP = curP;
+			int rightLimit = meanD*curSplit + 1;
+			if (nextX > rightLimit) {
+				nextX = rightLimit;
+				nextY = curP.y + 1;
+			}
+			
+			int leftLimit = meanD*(curSplit - 1) + meanD/2;
+			if (nextX < leftLimit) {
+				nextX = leftLimit;
+				nextY = curP.y + 1;
+			}
 			curP = new Point(nextX, nextY);
 			
 			endRoute[curP.y] = curP;
@@ -200,11 +235,10 @@ public class SegWaterDrop {
 	
 	/**
 	 * 具体实行切割
-	 * @param sourceImage
 	 * @param starts
 	 * @param ends
 	 */
-	private void doSplit(BufferedImage sourceImage, Point[] starts, Point[] ends){
+	private void doSplit(Point[] starts, Point[] ends){
 		int left = starts[0].x;
 		int top = starts[0].y;
 		int right = ends[0].x;
@@ -231,7 +265,7 @@ public class SegWaterDrop {
 			Point end = ends[i];
 			for (int x = start.x; x < end.x; x++) {
 				if (isBlack(sourceImage.getRGB(x, i))) {
-					System.out.println((x - left) + ", " + (start.y - top));
+//					System.out.println((x - left) + ", " + (start.y - top));
 					image.setRGB(x - left, start.y - top, new Color(0, 0, 0).getRGB());
 				}
 			}
@@ -244,7 +278,12 @@ public class SegWaterDrop {
 	}
 	
 	
-	public boolean isBlack(int rgb) {
+	/**
+	 * 判断是否位黑色像素
+	 * @param rgb
+	 * @return
+	 */
+	private boolean isBlack(int rgb) {
 		Color color = new Color(rgb);
 		if (color.getRed() + color.getGreen() + color.getBlue() <= 300) {
 			return true;
@@ -252,19 +291,54 @@ public class SegWaterDrop {
 		return false;
 	}
 	
-	public int getPixelValue(int rgb){
-		if (isBlack(rgb)) {
-			return 0;
-		}else{
-			return 1;
+	/**
+	 * 获得大水滴中心点周围的像素值
+	 * @param cx
+	 * @param cy
+	 * @param j 中心点周围的编号
+	 * @return
+	 */
+	private int getPixelValue(int cx, int cy, int j){
+		int rgb = 0;
+		
+		if (j == 4) {
+			int right = cx + b + 1;
+			right = right >= sourceImage.getWidth() - 1 ? sourceImage.getWidth() - 1: right;
+			rgb = sourceImage.getRGB(right, cy);
+			return isBlack(rgb) ? 0 : 1;
 		}
+		
+		if (j == 5) {
+			int left = cx - b - 1;
+			left = left <=0 ? 0 : left;
+			rgb = sourceImage.getRGB(left, cy);
+			return isBlack(rgb) ? 0 : 1;
+		}
+		
+		//如果 1<= j <= 3, 则判断下方的区域， 只要有一个黑点，则当做黑点，
+		int start = cx - b + j - 2;
+		int end = cx + b  + j - 2;
+		
+		start = start <=0 ? 0 : start;
+		end = end >= sourceImage.getWidth() - 1 ? sourceImage.getWidth() - 1 : end;
+		int blackNum = 0;
+		int whiteNum = 0;
+		for (int i = start; i <= end; i++) {
+			rgb = sourceImage.getRGB(i, cy + 1);
+			if (isBlack(rgb)) {
+				blackNum ++;
+			}else {
+				whiteNum ++;
+			}
+		}
+		
+		return (blackNum >= whiteNum) ? 0 : 1;
 	}
 	
 	
 	public static void main(String[] args){
 		
-		SegWaterDrop model = new SegWaterDrop();
-		model.run();
+		SegWaterDrop.run();
 	}
 
 }
