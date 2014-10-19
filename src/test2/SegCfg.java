@@ -60,7 +60,7 @@ public class SegCfg {
 			}
 		});
 		
-		for (int i=0; i<10; i++) {
+		for (int i=0; i<files.length; i++) {
 			try {
 				File file = files[i];
 				BufferedImage img = ImageIO.read(file);

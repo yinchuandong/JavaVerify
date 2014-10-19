@@ -10,25 +10,44 @@ import javax.imageio.ImageIO;
 
 public class SegWaterDrop {
 	
-	private int minD = 10;//最小字符宽度
-	private int maxD = 16;
-	private int meanD = 11;//平均字符宽度
+	private int minD = 8;//最小字符宽度
+	private int maxD = 15;
+	private int meanD = 12;//平均字符宽度
 	
-	private BufferedImage sourceImage;
+	private ArrayList<BufferedImage> imageList;
+	
 	
 	public SegWaterDrop() {
+		imageList = new ArrayList<BufferedImage>();
 		
+	}
+	
+	
+	public void run(){
 		try {
-			sourceImage = ImageIO.read(new File("img2/12_1.jpg"));
-			drop(sourceImage);
+			File file = new File("2_cfs/97-0.jpg");
+			BufferedImage sourceImage = ImageIO.read(file);
+			ArrayList<BufferedImage> list = drop(sourceImage);
+			for(int j=0; j<list.size(); j++){
+				BufferedImage subImg = list.get(j);
+				String prex = file.getName().split("\\.")[0];
+				String filename = "3_drop/" + prex + "-" + j + ".jpg";
+				ImageIO.write(subImg, "JPG", new File(filename));
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 	}
 	
-	private void drop(BufferedImage sourceImage){
-		
+	/**
+	 * 滴水法入口
+	 * @param sourceImage
+	 * @return 切割完图片的数组
+	 */
+	public ArrayList<BufferedImage> drop(BufferedImage sourceImage){
+		imageList.clear();
 		int width = sourceImage.getWidth();
 		int height = sourceImage.getHeight();
 		
@@ -71,8 +90,8 @@ public class SegWaterDrop {
 //			if (dAll < minD*(num - curSplit) || dAll > maxD*(num - curSplit)) {
 //				continue;
 //			}
-			endRoute = getEndRoute(new Point(curP, 0), height);
-			doSplit(startRoute, endRoute, "3_"+curSplit+".jpg");
+			endRoute = getEndRoute(sourceImage, new Point(curP, 0), height);
+			doSplit(sourceImage, startRoute, endRoute);
 			startRoute = endRoute;
 			lastP = curP;
 			curSplit ++;
@@ -82,10 +101,12 @@ public class SegWaterDrop {
 		for(int y=0; y < height; y++){
 			endRoute[y] = new Point(width - 1, y);
 		}
-		doSplit(startRoute, endRoute, "3_"+curSplit+".jpg");
+		doSplit(sourceImage, startRoute, endRoute);
 		
 		System.out.println("=================");
 		System.out.println(width+","+height);
+		
+		return this.imageList;
 	}
 	
 	/**
@@ -94,7 +115,7 @@ public class SegWaterDrop {
 	 * @param height
 	 * @return
 	 */
-	private Point[] getEndRoute(Point startP, int height){
+	private Point[] getEndRoute(BufferedImage sourceImage, Point startP, int height){
 		
 		//获得分割的路径
 		Point[] endRoute = new Point[height];
@@ -108,7 +129,7 @@ public class SegWaterDrop {
 			int nextY = curP.y;
 			
 			int[][] orderArr = {	{5, 0, 4},
-									{3, 2, 1}};
+									{1, 2, 3}};
 			for(int y = curP.y, i = 0; y <= curP.y + 1 && i < 2; y++, i++){
 				for(int x = curP.x - 1, j = 0; x <= curP.x + 1 && j < 3; x++, j++){
 					if (orderArr[i][j] == 0) {
@@ -150,10 +171,15 @@ public class SegWaterDrop {
 			case 4:
 				if (nextX > curP.x) {//具有向右的惯性
 					nextX = curP.x + 1;
-					nextY = curP.x + 1;
+					nextY = curP.y + 1;
 				}
 				
-				if (nextX < curP.x || sum == 0) {//向左的惯性或者sum = 0
+				if (nextX < curP.x) {//向左的惯性或者sum = 0
+					nextX = curP.x;
+					nextY = curP.y + 1;
+				}
+				
+				if (sum == 0) {
 					nextX = curP.x;
 					nextY = curP.y + 1;
 				}
@@ -172,7 +198,13 @@ public class SegWaterDrop {
 		return endRoute;
 	}
 	
-	private void doSplit(Point[] starts, Point[] ends, String filename){
+	/**
+	 * 具体实行切割
+	 * @param sourceImage
+	 * @param starts
+	 * @param ends
+	 */
+	private void doSplit(BufferedImage sourceImage, Point[] starts, Point[] ends){
 		int left = starts[0].x;
 		int top = starts[0].y;
 		int right = ends[0].x;
@@ -205,13 +237,9 @@ public class SegWaterDrop {
 			}
 			
 		}
+		this.imageList.add(image);
+		
 		System.out.println("-----------------------");
-		try {
-			ImageIO.write(image, "JPG", new File("img2/" + filename));
-//			ImageIO.write(sourceImage.getSubimage(left, top, width, height), "JPG", new File("img2/" + filename));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 		
 	}
 	
@@ -236,6 +264,7 @@ public class SegWaterDrop {
 	public static void main(String[] args){
 		
 		SegWaterDrop model = new SegWaterDrop();
+		model.run();
 	}
 
 }
