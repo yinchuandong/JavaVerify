@@ -14,7 +14,7 @@ public class Preprocess {
 		
 	}
 	
-	public void run(){
+	private void run(){
 		File dir = new File("download");
 		//只列出jpg
 		File[] files = dir.listFiles(new FilenameFilter() {
@@ -95,7 +95,7 @@ public class Preprocess {
 	 * @param width
 	 * @param height
 	 */
-	public int getOstu(int[][] gray, int width, int height){
+	private int getOstu(int[][] gray, int width, int height){
 		int grayLevel = 256;
 		int[] pixelNum = new int[grayLevel];
 		//计算所有色阶的直方图

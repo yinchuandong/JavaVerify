@@ -60,7 +60,11 @@ public class ImageUtil {
 	 */
 	public static String getImgClass(String filename){
 		String[] arr = filename.split("-");
-		return arr[0];
+		if (arr != null) {
+			return arr[0];
+		}else{
+			return "";
+		}
 	}
 	
 	

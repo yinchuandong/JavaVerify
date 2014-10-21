@@ -36,7 +36,6 @@ public class Predict {
 		imageMap = new HashMap<String, Integer[][]>();
 		
 		loadImageLabel();
-		loadImage();
 	}
 	
 	/**
@@ -70,6 +69,9 @@ public class Predict {
 	}
 	
 	
+	/**
+	 * 加载图片，供测试用
+	 */
 	private void loadImage(){
 		File dir = new File("4_scale/");
 		//只列出jpg
@@ -136,12 +138,14 @@ public class Predict {
 		}
 		
 		this.imageMap.put(file.getName(), imgArr);
+		
 	}
+	
 	
 	/**
 	 * 转成svm 测试集的格式
 	 */
-	public void svmFormat(){
+	private void svmFormat(){
 		
 		PrintWriter writer = null;
 		try {
@@ -177,23 +181,76 @@ public class Predict {
 		
 	}
 	
-	public static void run() throws IOException{
+	/**
+	 * 转换为svm的格式
+	 * @param imageList
+	 */
+	private void svmFormat(ArrayList<BufferedImage> imageList){
+		
+		PrintWriter writer = null;
+		try {
+			writer = new PrintWriter(new File("svm/svm.test"));
+			for (BufferedImage image : imageList) {
+				int width = image.getWidth();
+				int height = image.getHeight();
+				int index = 1;
+				
+				String tmpLine = "-1 ";//默认无标号，则为-1
+				for (int y = 0; y < height; y++) {
+					for (int x = 0; x < width; x++) {
+						//黑色点标记为1
+						int value = ImageUtil.isBlack(image.getRGB(x, y)) ? 1 : 0;
+						tmpLine += index + ":" + value + " ";
+						index ++;
+					}
+				}
+				writer.write(tmpLine + "\r\n");
+				writer.flush();
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally{
+			if (writer != null) {
+				writer.close();
+			}
+		}
+	}
+	
+	/**
+	 * 公共接口
+	 * @param imageList
+	 * @throws IOException
+	 */
+	public static void run(ArrayList<BufferedImage> imageList) throws IOException{
+		Predict model = new Predict();
+		model.svmFormat(imageList);
+		
 		//predict参数
 		String[] parg = {"svm/svm.test","svm/svm.model","svm/result.txt"};
 		
-		System.out.println("训练开始");
+		System.out.println("预测开始");
 		svm_predict.main(parg);
-		System.out.println("训练结束");
+		System.out.println("预测结束");
 	}
 	
 	public static void main(String[] args){
 //		Predict model = new Predict();
+//		model.loadImage();
 //		model.svmFormat();
+		
 		try {
-			run();
+			//predict参数
+			BufferedImage image = ImageIO.read(new File("4_scale/2-223.jpg"));
+			ArrayList<BufferedImage> list = new ArrayList<BufferedImage>();
+			list.add(image);
+			run(list);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
+	
+	
+	
 }

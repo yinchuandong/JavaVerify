@@ -186,7 +186,7 @@ public class SegCfg {
 		}
 	}
 	
-	public boolean isBlack(int rgb) {
+	private boolean isBlack(int rgb) {
 		Color color = new Color(rgb);
 		if (color.getRed() + color.getGreen() + color.getBlue() <= 300) {
 			return true;
