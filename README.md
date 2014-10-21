@@ -53,7 +53,7 @@ Inertial big drop fall algorithm, libsvm
       |   |—— SegWaterDrop.java 滴水算法切割
       |   |—— ScaleImage.java 对图片进行缩放
       |
-      |—— test1 用来测试其他的，不用管
+      |—— test1 用来测试其他的，不用管它
  
       
       
