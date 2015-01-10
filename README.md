@@ -4,6 +4,21 @@
 Inertial big drop fall algorithm, libsvm
 ------------------------
 
+### Introduction: 
+Recognize the CAPTCHA of some specified websites
+(http://blog.csdn.net/yinchuandong2/article/details/40340735)
+
+### Functions:
+    1.	Download the CAPTCHA from specified websites
+    2.	Segment and recognize the distorted and sticky characters from picture
+    
+### Technologies:
+    1.	Use Java multi-thread and HTTP protocol to download CAPTCHA
+    2.	Use Otsu threshold to binarize the original image
+    3.	Use CFS (Color Filling Segmentation) algorithm to implement the first segmentation
+    4.	Use BIDF (Big Inertial Drop Fall) algorithm to implement the second segmentation
+    5.	Use LibSvm to build the model and predict the class of characters
+
 ### 根目录目录结构
     |—— JavaVerify
     |   |—— download 从网上下载下来的原验证码图片，未经过处理
